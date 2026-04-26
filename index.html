@@ -2,71 +2,455 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>CPM KING RANK TOOL | NEXUS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0a0a0f, #0d1117); color: #fff; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #0d1117 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(0,255,136,0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0,255,136,0); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            animation: fadeIn 0.6s ease;
+        }
+
         /* Glass Card */
-        .glass-card { background: rgba(15, 25, 35, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(160, 32, 240, 0.3); border-radius: 28px; padding: 24px; margin-bottom: 24px; }
-        .glass-card:hover { border-color: rgba(160, 32, 240, 0.6); }
-        
+        .glass-card {
+            background: rgba(15, 25, 35, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(160, 32, 240, 0.3);
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(160, 32, 240, 0.6);
+            transform: translateY(-2px);
+        }
+
         /* Header */
-        .header { text-align: center; margin-bottom: 30px; }
-        .logo { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #a020f0, #e0aaff); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a020f0, #e0aaff, #7b1fa2);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.5);
+            margin-top: 8px;
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+
         /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: rgba(0,0,0,0.5); border-radius: 20px; padding: 20px; text-align: center; border: 1px solid rgba(160,32,240,0.2); }
-        .stat-number { font-size: 32px; font-weight: 800; color: #a020f0; }
-        .stat-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px; }
-        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(160,32,240,0.2);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(160,32,240,0.5);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: #a020f0;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* Tabs */
-        .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; }
-        .tab-btn { padding: 10px 24px; background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; border-radius: 40px; transition: all 0.2s; }
-        .tab-btn.active { background: linear-gradient(135deg, #a020f0, #7b1fa2); color: white; }
-        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            border-radius: 40px;
+            transition: all 0.2s;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .tab-btn i {
+            margin-right: 8px;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #a020f0, #7b1fa2);
+            color: white;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
         /* Forms */
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 16px; background: rgba(20,20,35,0.8); border: 1px solid rgba(160,32,240,0.3); border-radius: 16px; color: white; }
-        .form-group input:focus { outline: none; border-color: #a020f0; }
-        
-        .btn { padding: 12px 24px; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: linear-gradient(135deg, #a020f0, #7b1fa2); color: white; }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(160,32,240,0.4); }
-        .btn-success { background: linear-gradient(135deg, #00cc66, #009944); color: white; }
-        .btn-danger { background: linear-gradient(135deg, #ff3355, #cc0033); color: white; }
-        .btn-outline { background: transparent; border: 1px solid rgba(160,32,240,0.4); color: #a020f0; }
-        
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        
-        .queue-item { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(20,20,35,0.8);
+            border: 1px solid rgba(160,32,240,0.3);
+            border-radius: 16px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #a020f0;
+            box-shadow: 0 0 0 3px rgba(160,32,240,0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a020f0, #7b1fa2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(160,32,240,0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00cc66, #009944);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,204,102,0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff3355, #cc0033);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(160,32,240,0.4);
+            color: #a020f0;
+        }
+
+        .btn-outline:hover {
+            background: rgba(160,32,240,0.1);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(160,32,240,0.2);
+            border-top-color: #a020f0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #a020f0;
+        }
+
+        .loading-steps {
+            margin-top: 10px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+        }
+
+        .step-item {
+            display: inline-block;
+            margin: 0 10px;
+            transition: all 0.3s;
+        }
+
+        .step-item.active {
+            color: #a020f0;
+            text-shadow: 0 0 10px rgba(160,32,240,0.5);
+        }
+
+        .step-item.completed {
+            color: #00ff88;
+        }
+
+        /* Cooldown Timer */
+        .cooldown-timer {
+            background: linear-gradient(135deg, rgba(255,100,0,0.15), rgba(255,50,0,0.05));
+            border: 1px solid #ff6600;
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin: 16px 0;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .cooldown-timer i {
+            color: #ff6600;
+            margin-right: 8px;
+        }
+
+        .cooldown-countdown {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff6600;
+            font-family: monospace;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 16px;
+            margin-top: 16px;
+            font-size: 13px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .alert-error {
+            background: rgba(255, 51, 85, 0.1);
+            border: 1px solid #ff3355;
+            color: #ff3355;
+        }
+
+        .alert-info {
+            background: rgba(160, 32, 240, 0.1);
+            border: 1px solid #a020f0;
+            color: #e0aaff;
+        }
+
+        .alert-warning {
+            background: rgba(255, 102, 0, 0.1);
+            border: 1px solid #ff6600;
+            color: #ffaa33;
+        }
+
+        /* Queue & Marketplace Items */
+        .queue-item, .marketplace-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .queue-item:hover, .marketplace-item:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
         .badge-pending { background: rgba(255,170,0,0.2); color: #ffaa33; }
         .badge-processing { background: rgba(160,32,240,0.2); color: #a020f0; }
         .badge-completed { background: rgba(0,255,136,0.2); color: #00ff88; }
         .badge-failed { background: rgba(255,51,85,0.2); color: #ff3355; }
-        
-        .marketplace-item { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        
-        @media (max-width: 768px) { .container { padding: 12px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .badge-active { background: rgba(0,255,136,0.2); color: #00ff88; }
+        .badge-sold { background: rgba(255,102,0,0.2); color: #ffaa33; }
+
+        /* Success Card Animation */
+        .success-card {
+            animation: successPulse 0.6s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .logo { font-size: 32px; }
+            .tabs { flex-direction: column; }
+            .tab-btn { justify-content: center; }
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Processing King Rank...</div>
+        <div class="loading-steps" id="loadingSteps">
+            <span id="step1" class="step-item">🔑 Verifying Key</span>
+            <span>→</span>
+            <span id="step2" class="step-item">🔐 Logging In</span>
+            <span>→</span>
+            <span id="step3" class="step-item">👑 Setting Rank</span>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <div class="logo">👑 CPM KING RANK TOOL</div>
-            <div style="color: rgba(255,255,255,0.5);">Car Parking Multiplayer | Rank Pusher + Marketplace + Queue System</div>
+            <div class="subtitle">Car Parking Multiplayer | Rank Pusher + Marketplace + Queue System</div>
         </div>
 
-        <!-- Live Stats Dashboard (Fitur 6 & 10) -->
-        <div class="stats-grid" id="liveStats"></div>
+        <!-- Live Stats Dashboard -->
+        <div class="stats-grid" id="liveStats">
+            <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Total Processed</div></div>
+            <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Success Rate</div></div>
+            <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Today Success</div></div>
+            <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Queue Length</div></div>
+        </div>
+
+        <!-- Cooldown Display (akan muncul jika ada cooldown) -->
+        <div id="cooldownDisplay" style="display: none;"></div>
 
         <!-- Tabs -->
         <div class="tabs">
@@ -80,22 +464,22 @@
         <!-- Tab 1: King Rank -->
         <div id="tabRank" class="tab-panel active">
             <div class="glass-card">
-                <h3><i class="fas fa-crown"></i> Activate King Rank</h3>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-crown"></i> Activate King Rank</h3>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Email</label>
+                        <label><i class="fas fa-envelope"></i> Email</label>
                         <input type="email" id="rankEmail" placeholder="your@email.com">
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
+                        <label><i class="fas fa-lock"></i> Password</label>
                         <input type="password" id="rankPassword" placeholder="••••••••">
                     </div>
                     <div class="form-group">
-                        <label>Nexus Key</label>
+                        <label><i class="fas fa-key"></i> Nexus Key</label>
                         <input type="text" id="rankKey" placeholder="NX-XXXX-XXXX">
                     </div>
                     <div class="form-group">
-                        <label>Use Custom Stats?</label>
+                        <label><i class="fas fa-sliders-h"></i> Use Custom Stats?</label>
                         <select id="useCustomStats">
                             <option value="false">No (Use Default King Settings)</option>
                             <option value="true">Yes (Use Custom Stats Below)</option>
@@ -103,96 +487,99 @@
                     </div>
                 </div>
                 <div id="customStatsSection" style="display: none;">
-                    <h4>Custom Stats Configuration</h4>
+                    <h4 style="margin: 16px 0 12px;">Custom Stats Configuration</h4>
                     <div class="grid-2" id="customStatsFields"></div>
                 </div>
-                <button class="btn btn-primary" onclick="activateKingRank()"><i class="fas fa-crown"></i> Activate King Rank</button>
-                <div id="rankResult" style="margin-top: 16px;"></div>
+                <button class="btn btn-primary btn-block" onclick="activateKingRank()" id="activateBtn">
+                    <i class="fas fa-crown"></i> Activate King Rank
+                </button>
+                <div id="rankResult"></div>
             </div>
 
             <div class="glass-card">
-                <h3><i class="fas fa-layer-group"></i> Bulk Process</h3>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-layer-group"></i> Bulk Process</h3>
                 <div class="form-group">
-                    <label>Accounts (JSON Array)</label>
+                    <label><i class="fas fa-file-code"></i> Accounts (JSON Array)</label>
                     <textarea id="bulkAccounts" rows="4" placeholder='[{"email":"user1@email.com","password":"pass1"},{"email":"user2@email.com","password":"pass2"}]'></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Nexus Key</label>
+                    <label><i class="fas fa-key"></i> Nexus Key</label>
                     <input type="text" id="bulkKey" placeholder="NX-XXXX-XXXX">
                 </div>
-                <button class="btn btn-success" onclick="bulkProcess()"><i class="fas fa-play"></i> Bulk Process</button>
-                <div id="bulkResult" style="margin-top: 16px;"></div>
+                <button class="btn btn-success btn-block" onclick="bulkProcess()"><i class="fas fa-play"></i> Bulk Process</button>
+                <div id="bulkResult"></div>
             </div>
         </div>
 
-        <!-- Tab 2: Queue System (Fitur 9) -->
-        <div id="tabQueue" class="tab-panel" style="display: none;">
+        <!-- Tab 2: Queue System -->
+        <div id="tabQueue" class="tab-panel">
             <div class="glass-card">
-                <h3><i class="fas fa-plus-circle"></i> Add to Queue</h3>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-plus-circle"></i> Add to Queue</h3>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Email</label>
+                        <label><i class="fas fa-envelope"></i> Email</label>
                         <input type="email" id="queueEmail" placeholder="your@email.com">
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
+                        <label><i class="fas fa-lock"></i> Password</label>
                         <input type="password" id="queuePassword" placeholder="••••••••">
                     </div>
                     <div class="form-group">
-                        <label>Nexus Key</label>
+                        <label><i class="fas fa-key"></i> Nexus Key</label>
                         <input type="text" id="queueKey" placeholder="NX-XXXX-XXXX">
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="addToQueue()"><i class="fas fa-hourglass-half"></i> Add to Queue</button>
-                <div id="queueResult" style="margin-top: 16px;"></div>
+                <button class="btn btn-primary btn-block" onclick="addToQueue()"><i class="fas fa-hourglass-half"></i> Add to Queue</button>
+                <div id="queueResult"></div>
             </div>
 
             <div class="glass-card">
-                <h3><i class="fas fa-list"></i> Queue Status</h3>
-                <div id="queueStatus"></div>
-                <button class="btn btn-outline" onclick="refreshQueueStatus()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-list"></i> Queue Status</h3>
+                <div id="queueStatus">Loading...</div>
+                <button class="btn btn-outline btn-block" onclick="refreshQueueStatus()"><i class="fas fa-sync-alt"></i> Refresh</button>
             </div>
         </div>
 
-        <!-- Tab 3: Marketplace (Fitur 13) -->
-        <div id="tabMarketplace" class="tab-panel" style="display: none;">
+        <!-- Tab 3: Marketplace -->
+        <div id="tabMarketplace" class="tab-panel">
             <div class="glass-card">
-                <h3><i class="fas fa-plus-circle"></i> List Item for Sale</h3>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-plus-circle"></i> List Item for Sale</h3>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Seller ID</label>
+                        <label><i class="fas fa-user"></i> Seller ID</label>
                         <input type="text" id="sellerId" placeholder="Your username">
                     </div>
                     <div class="form-group">
-                        <label>Item Type</label>
+                        <label><i class="fas fa-tag"></i> Item Type</label>
                         <select id="itemType">
-                            <option value="account">King Rank Account</option>
-                            <option value="car">Legendary Car</option>
-                            <option value="skin">Rare Skin</option>
-                            <option value="item">Special Item</option>
+                            <option value="account">👑 King Rank Account</option>
+                            <option value="car">🚗 Legendary Car</option>
+                            <option value="skin">🎨 Rare Skin</option>
+                            <option value="item">📦 Special Item</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Item Data (JSON)</label>
+                        <label><i class="fas fa-database"></i> Item Data (JSON)</label>
                         <input type="text" id="itemData" placeholder='{"car":"Bugatti","level":"King"}'>
                     </div>
                     <div class="form-group">
-                        <label>Price (Points)</label>
+                        <label><i class="fas fa-coins"></i> Price (Points)</label>
                         <input type="number" id="itemPrice" placeholder="1000">
                     </div>
                     <div class="form-group">
-                        <label>Nexus Key</label>
+                        <label><i class="fas fa-key"></i> Nexus Key</label>
                         <input type="text" id="marketplaceKey" placeholder="NX-XXXX-XXXX">
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="listItem()"><i class="fas fa-tag"></i> List Item</button>
+                <button class="btn btn-primary btn-block" onclick="listItem()"><i class="fas fa-tag"></i> List Item</button>
+                <div id="listResult"></div>
             </div>
 
             <div class="glass-card">
-                <h3><i class="fas fa-store"></i> Marketplace Listings</h3>
-                <div class="grid-2" style="margin-bottom: 12px;">
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-store"></i> Marketplace Listings</h3>
+                <div class="grid-2" style="margin-bottom: 16px;">
                     <div class="form-group">
-                        <label>Filter by Type</label>
+                        <label><i class="fas fa-filter"></i> Filter by Type</label>
                         <select id="filterType" onchange="loadMarketplace()">
                             <option value="">All</option>
                             <option value="account">Accounts</option>
@@ -201,56 +588,189 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Max Price</label>
+                        <label><i class="fas fa-dollar-sign"></i> Max Price</label>
                         <input type="number" id="maxPrice" placeholder="Any" onchange="loadMarketplace()">
                     </div>
                 </div>
-                <div id="marketplaceListings"></div>
+                <div id="marketplaceListings">Loading...</div>
             </div>
         </div>
 
-        <!-- Tab 4: King Settings (Custom Rating & Stats) -->
-        <div id="tabSettings" class="tab-panel" style="display: none;">
+        <!-- Tab 4: King Settings -->
+        <div id="tabSettings" class="tab-panel">
             <div class="glass-card">
-                <h3><i class="fas fa-sliders-h"></i> King Rank Custom Settings</h3>
-                <p style="margin-bottom: 16px; color: rgba(255,255,255,0.5);">Configure how much rating and stats to apply when activating King Rank</p>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-sliders-h"></i> King Rank Custom Settings</h3>
+                <p style="margin-bottom: 16px; color: rgba(255,255,255,0.5);">Configure rating and stats for King Rank activation</p>
                 
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Target Rating / Total XP</label>
+                        <label><i class="fas fa-chart-line"></i> Target Rating / Total XP</label>
                         <input type="number" id="kingTargetRating" value="100000" placeholder="100000">
                     </div>
                     <div class="form-group">
-                        <label>Race Wins</label>
+                        <label><i class="fas fa-flag-checkered"></i> Race Wins</label>
                         <input type="number" id="kingRaceWin" value="3000" placeholder="3000">
                     </div>
                 </div>
                 
-                <h4 style="margin: 16px 0 12px;">Game Stats Configuration</h4>
+                <h4 style="margin: 20px 0 12px;"><i class="fas fa-chart-simple"></i> Game Stats Configuration</h4>
                 <div class="grid-2" id="statsConfigGrid"></div>
                 
-                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
                     <button class="btn btn-primary" onclick="saveKingSettings()"><i class="fas fa-save"></i> Save Settings</button>
                     <button class="btn btn-outline" onclick="previewSettings()"><i class="fas fa-eye"></i> Preview</button>
                     <button class="btn btn-outline" onclick="resetSettings()"><i class="fas fa-undo"></i> Reset to Default</button>
                 </div>
-                <div id="settingsResult" style="margin-top: 16px;"></div>
+                <div id="settingsResult"></div>
             </div>
         </div>
 
-        <!-- Tab 5: Analytics (Fitur 10) -->
-        <div id="tabAnalytics" class="tab-panel" style="display: none;">
+        <!-- Tab 5: Analytics -->
+        <div id="tabAnalytics" class="tab-panel">
             <div class="glass-card">
-                <h3><i class="fas fa-chart-line"></i> System Analytics</h3>
-                <canvas id="analyticsChart" style="max-height: 300px;"></canvas>
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-chart-line"></i> System Analytics</h3>
+                <canvas id="analyticsChart" style="max-height: 300px; width: 100%;"></canvas>
                 <div id="analyticsData" style="margin-top: 20px;"></div>
             </div>
         </div>
     </div>
 
     <script>
-       const API_BASE = "https://abcdefghoeu7.vercel.app";
+        // ============================================================
+        // CPM KING RANK TOOL - FULL VERSION
+        // ============================================================
+        
+         const API_BASE = "https://abcdefghoeu7.vercel.app";
         let analyticsChart = null;
+        let cooldownCheckInterval = null;
+        let currentEmail = null;
+
+        // ============================================================
+        // LOADING EFFECT
+        // ============================================================
+        function showLoading(show, step = null) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (!overlay) return;
+            
+            if (show) {
+                overlay.style.display = 'flex';
+                if (step) updateLoadingStep(step);
+            } else {
+                overlay.style.display = 'none';
+                resetLoadingSteps();
+            }
+        }
+
+        function updateLoadingStep(step) {
+            const steps = {
+                'verify': () => {
+                    document.getElementById('step1')?.classList.add('active');
+                    document.getElementById('step1')?.classList.remove('completed');
+                    document.getElementById('loadingText').innerText = 'Verifying Nexus Key...';
+                },
+                'login': () => {
+                    document.getElementById('step1')?.classList.add('completed');
+                    document.getElementById('step1')?.classList.remove('active');
+                    document.getElementById('step2')?.classList.add('active');
+                    document.getElementById('loadingText').innerText = 'Logging into CPM...';
+                },
+                'rank': () => {
+                    document.getElementById('step2')?.classList.add('completed');
+                    document.getElementById('step2')?.classList.remove('active');
+                    document.getElementById('step3')?.classList.add('active');
+                    document.getElementById('loadingText').innerText = 'Setting King Rank...';
+                },
+                'success': () => {
+                    document.getElementById('step3')?.classList.add('completed');
+                    document.getElementById('step3')?.classList.remove('active');
+                    document.getElementById('loadingText').innerText = 'Success!';
+                }
+            };
+            
+            if (steps[step]) steps[step]();
+        }
+
+        function resetLoadingSteps() {
+            ['step1', 'step2', 'step3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.remove('active', 'completed');
+                }
+            });
+        }
+
+        function triggerConfetti() {
+            canvasConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#a020f0', '#e0aaff', '#ffd700'] });
+            setTimeout(() => {
+                canvasConfetti({ particleCount: 100, spread: 100, origin: { y: 0.5, x: 0.3 }, colors: ['#a020f0'] });
+                canvasConfetti({ particleCount: 100, spread: 100, origin: { y: 0.5, x: 0.7 }, colors: ['#ffd700'] });
+            }, 200);
+        }
+
+        // ============================================================
+        // COOLDOWN CHECK (PER USER)
+        // ============================================================
+        async function checkCooldown(email) {
+            if (!email) return { active: false };
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/cooldown/${encodeURIComponent(email)}`);
+                const data = await res.json();
+                return data;
+            } catch (error) {
+                console.error('Cooldown check error:', error);
+                return { active: false };
+            }
+        }
+
+        async function displayCooldown(email) {
+            const cooldownDiv = document.getElementById('cooldownDisplay');
+            if (!cooldownDiv) return;
+            
+            const cooldown = await checkCooldown(email);
+            
+            if (cooldown.active && cooldown.remaining > 0) {
+                cooldownDiv.style.display = 'block';
+                cooldownDiv.innerHTML = `
+                    <div class="cooldown-timer">
+                        <i class="fas fa-hourglass-half"></i>
+                        <strong>Cooldown Active!</strong><br>
+                        <div class="cooldown-countdown" id="cooldownTimer">${cooldown.formattedTime || '0:00'}</div>
+                        <small>Please wait before using King Rank again</small>
+                    </div>
+                `;
+                
+                // Update timer setiap detik
+                if (cooldownCheckInterval) clearInterval(cooldownCheckInterval);
+                
+                let remaining = cooldown.remaining;
+                cooldownCheckInterval = setInterval(() => {
+                    remaining -= 1000;
+                    if (remaining <= 0) {
+                        clearInterval(cooldownCheckInterval);
+                        cooldownDiv.style.display = 'none';
+                        enableRankButtons(true);
+                    } else {
+                        const minutes = Math.floor(remaining / 60000);
+                        const seconds = Math.floor((remaining % 60000) / 1000);
+                        const timerEl = document.getElementById('cooldownTimer');
+                        if (timerEl) timerEl.innerText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                }, 1000);
+                
+                enableRankButtons(false);
+            } else {
+                cooldownDiv.style.display = 'none';
+                enableRankButtons(true);
+            }
+        }
+
+        function enableRankButtons(enable) {
+            const btn = document.getElementById('activateBtn');
+            const bulkBtn = document.querySelector('#tabRank .btn-success');
+            if (btn) btn.disabled = !enable;
+            if (bulkBtn) bulkBtn.disabled = !enable;
+        }
 
         // ============================================================
         // LIVE STATS (Fitur 6)
@@ -262,18 +782,133 @@
                 if (data.success) {
                     document.getElementById('liveStats').innerHTML = `
                         <div class="stat-card"><div class="stat-number">${data.stats.totalProcessed}</div><div class="stat-label">Total Processed</div></div>
-                        <div class="stat-card"><div class="stat-number">${data.stats.successCount}</div><div class="stat-label">Success</div></div>
-                        <div class="stat-card"><div class="stat-number">${data.stats.failedCount}</div><div class="stat-label">Failed</div></div>
                         <div class="stat-card"><div class="stat-number">${data.stats.successRate}%</div><div class="stat-label">Success Rate</div></div>
+                        <div class="stat-card"><div class="stat-number">${data.stats.todaySuccess}</div><div class="stat-label">Today Success</div></div>
                         <div class="stat-card"><div class="stat-number">${data.stats.queueLength}</div><div class="stat-label">Queue Length</div></div>
-                        <div class="stat-card"><div class="stat-number">${data.stats.isProcessing ? '🟢' : '⚫'}</div><div class="stat-label">Processing</div></div>
                     `;
                 }
             } catch(e) { console.error(e); }
         }
 
         // ============================================================
-        // QUEUE SYSTEM (Fitur 9)
+        // KING RANK ACTIVATION (DENGAN EFFECT & COOLDOWN)
+        // ============================================================
+        async function activateKingRank() {
+            const email = document.getElementById('rankEmail').value.trim();
+            const password = document.getElementById('rankPassword').value;
+            const nexusKey = document.getElementById('rankKey').value.trim();
+            const useCustom = document.getElementById('useCustomStats').value === 'true';
+            
+            if (!email || !password || !nexusKey) {
+                showAlert('rankResult', 'Please fill all fields', 'error');
+                return;
+            }
+            
+            currentEmail = email;
+            
+            // Cek cooldown dulu
+            const cooldown = await checkCooldown(email);
+            if (cooldown.active) {
+                showAlert('rankResult', `⏰ Cooldown active! Please wait ${cooldown.formattedTime}`, 'warning');
+                displayCooldown(email);
+                return;
+            }
+            
+            let customStats = null;
+            if (useCustom) {
+                customStats = {};
+                const statInputs = document.querySelectorAll('#statsConfigGrid input');
+                statInputs.forEach(input => {
+                    const key = input.id.replace('stat_', '');
+                    customStats[key] = parseInt(input.value);
+                });
+            }
+            
+            showLoading(true, 'verify');
+            
+            try {
+                updateLoadingStep('verify');
+                await new Promise(r => setTimeout(r, 1000));
+                
+                updateLoadingStep('login');
+                await new Promise(r => setTimeout(r, 1500));
+                
+                updateLoadingStep('rank');
+                
+                const res = await fetch(`${API_BASE}/api/apply-custom-stats`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, nexusKey, customStats })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    updateLoadingStep('success');
+                    await new Promise(r => setTimeout(r, 500));
+                    showLoading(false);
+                    triggerConfetti();
+                    showAlert('rankResult', `👑 ${data.message}`, 'success');
+                    
+                    // Update cooldown display
+                    await displayCooldown(email);
+                    loadLiveStats();
+                } else if (data.cooldown) {
+                    showLoading(false);
+                    showAlert('rankResult', `⏰ ${data.error}`, 'warning');
+                    displayCooldown(email);
+                } else {
+                    showLoading(false);
+                    showAlert('rankResult', `❌ ${data.error}`, 'error');
+                }
+            } catch (err) {
+                showLoading(false);
+                showAlert('rankResult', `❌ Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function bulkProcess() {
+            const accountsText = document.getElementById('bulkAccounts').value;
+            const nexusKey = document.getElementById('bulkKey').value;
+            
+            if (!accountsText || !nexusKey) {
+                showAlert('bulkResult', 'Please fill accounts and nexus key', 'error');
+                return;
+            }
+            
+            try {
+                const accounts = JSON.parse(accountsText);
+                if (!Array.isArray(accounts) || accounts.length === 0) throw new Error();
+                
+                showLoading(true);
+                const res = await fetch(`${API_BASE}/api/bulk-process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accounts, nexusKey })
+                });
+                const data = await res.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    let html = '<div class="alert alert-info">📊 Bulk Process Results:</div>';
+                    data.results.forEach(r => {
+                        html += `<div class="alert ${r.success ? 'alert-success' : 'alert-error'}" style="margin-top: 8px;">
+                            ${r.email}: ${r.success ? '✅ Success' : '❌ ' + r.error}
+                        </div>`;
+                    });
+                    document.getElementById('bulkResult').innerHTML = html;
+                    loadLiveStats();
+                    if (data.hasCooldown) await displayCooldown(currentEmail);
+                } else {
+                    showAlert('bulkResult', data.error, 'error');
+                }
+            } catch (err) {
+                showAlert('bulkResult', 'Invalid JSON format', 'error');
+                showLoading(false);
+            }
+        }
+
+        // ============================================================
+        // QUEUE SYSTEM
         // ============================================================
         async function addToQueue() {
             const email = document.getElementById('queueEmail').value;
@@ -281,45 +916,55 @@
             const nexusKey = document.getElementById('queueKey').value;
             
             if (!email || !password || !nexusKey) {
-                alert('Please fill all fields');
+                showAlert('queueResult', 'Please fill all fields', 'error');
                 return;
             }
             
+            showLoading(true);
             const res = await fetch(`${API_BASE}/api/queue/add`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, nexusKey })
             });
             const data = await res.json();
+            showLoading(false);
             
             if (data.success) {
-                document.getElementById('queueResult').innerHTML = `<div class="alert alert-success">✅ Added to queue! ID: ${data.queueId}, Position: ${data.position}</div>`;
+                showAlert('queueResult', `✅ Added to queue! ID: ${data.queueId}, Position: ${data.position}`, 'success');
                 refreshQueueStatus();
+            } else if (data.cooldown) {
+                showAlert('queueResult', `⏰ ${data.error}`, 'warning');
             } else {
-                document.getElementById('queueResult').innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
+                showAlert('queueResult', `❌ ${data.error}`, 'error');
             }
         }
         
         async function refreshQueueStatus() {
-            const res = await fetch(`${API_BASE}/api/queue/status`);
-            const data = await res.json();
-            if (data.success) {
-                let html = `<p>Status: ${data.isProcessing ? '🟢 Processing' : '⚫ Idle'} | Queue Length: ${data.queueLength}</p>`;
-                html += `<div style="max-height: 300px; overflow-y: auto;">`;
-                data.queue.forEach(q => {
-                    html += `<div class="queue-item">
-                        <span class="badge badge-${q.status}">${q.status}</span>
-                        <strong>${q.email}</strong> - ${q.id}
-                        <small>${new Date(q.createdAt).toLocaleString()}</small>
-                    </div>`;
-                });
-                html += `</div>`;
-                document.getElementById('queueStatus').innerHTML = html;
-            }
+            try {
+                const res = await fetch(`${API_BASE}/api/queue/status`);
+                const data = await res.json();
+                if (data.success) {
+                    let html = `<p>📊 Status: ${data.isProcessing ? '🟢 Processing' : '⚫ Idle'} | Queue Length: ${data.queueLength}</p>`;
+                    html += `<div style="max-height: 300px; overflow-y: auto;">`;
+                    if (data.queue && data.queue.length > 0) {
+                        data.queue.forEach(q => {
+                            html += `<div class="queue-item">
+                                <span class="badge badge-${q.status}">${q.status}</span>
+                                <strong>${q.email}</strong> - ${q.queue_id}
+                                <small style="display: block; color: rgba(255,255,255,0.4);">${new Date(q.created_at).toLocaleString()}</small>
+                            </div>`;
+                        });
+                    } else {
+                        html += `<div class="alert alert-info">No items in queue</div>`;
+                    }
+                    html += `</div>`;
+                    document.getElementById('queueStatus').innerHTML = html;
+                }
+            } catch(e) { console.error(e); }
         }
 
         // ============================================================
-        // MARKETPLACE (Fitur 13)
+        // MARKETPLACE
         // ============================================================
         async function listItem() {
             const sellerId = document.getElementById('sellerId').value;
@@ -328,17 +973,25 @@
             const price = document.getElementById('itemPrice').value;
             const nexusKey = document.getElementById('marketplaceKey').value;
             
+            if (!sellerId || !price || !nexusKey) {
+                showAlert('listResult', 'Please fill seller ID, price, and nexus key', 'error');
+                return;
+            }
+            
+            showLoading(true);
             const res = await fetch(`${API_BASE}/api/marketplace/list`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sellerId, itemType, itemData, price, nexusKey })
             });
             const data = await res.json();
+            showLoading(false);
+            
             if (data.success) {
-                alert(`Item listed! ID: ${data.listingId}`);
+                showAlert('listResult', `✅ Item listed! ID: ${data.listingId}`, 'success');
                 loadMarketplace();
             } else {
-                alert(data.error);
+                showAlert('listResult', `❌ ${data.error}`, 'error');
             }
         }
         
@@ -351,26 +1004,26 @@
             
             const res = await fetch(url);
             const data = await res.json();
-            if (data.success && data.listings.length > 0) {
+            if (data.success && data.listings && data.listings.length > 0) {
                 let html = '';
                 data.listings.forEach(item => {
                     html += `
                         <div class="marketplace-item">
                             <div>
-                                <strong>${item.itemType.toUpperCase()}</strong><br>
-                                <small>Seller: ${item.sellerId}</small><br>
-                                <small>Data: ${typeof item.itemData === 'string' ? item.itemData : JSON.stringify(item.itemData)}</small>
+                                <span class="badge badge-active">${item.item_type}</span>
+                                <strong>${typeof item.item_data === 'string' ? item.item_data : JSON.stringify(item.item_data)}</strong><br>
+                                <small>Seller: ${item.seller_id}</small>
                             </div>
                             <div>
                                 <span style="color: #a020f0; font-weight: bold;">💰 ${item.price} pts</span>
-                                <button class="btn btn-primary" style="margin-left: 12px; padding: 6px 12px;" onclick="buyItem('${item.listingId}')">Buy</button>
+                                <button class="btn btn-primary" style="margin-left: 12px; padding: 6px 12px;" onclick="buyItem('${item.listing_id}')">Buy</button>
                             </div>
                         </div>
                     `;
                 });
                 document.getElementById('marketplaceListings').innerHTML = html;
             } else {
-                document.getElementById('marketplaceListings').innerHTML = '<p>No listings found</p>';
+                document.getElementById('marketplaceListings').innerHTML = '<div class="alert alert-info">No listings found</div>';
             }
         }
         
@@ -379,47 +1032,47 @@
             const nexusKey = prompt('Enter your Nexus Key:');
             if (!buyerId || !nexusKey) return;
             
+            showLoading(true);
             const res = await fetch(`${API_BASE}/api/marketplace/buy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ listingId, buyerId, nexusKey })
             });
             const data = await res.json();
+            showLoading(false);
             alert(data.message || data.error);
             loadMarketplace();
         }
 
         // ============================================================
-        // KING RANK CUSTOM SETTINGS (Rating & Stats)
+        // KING SETTINGS
         // ============================================================
         async function loadKingSettings() {
-            const res = await fetch(`${API_BASE}/api/king-settings`);
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById('kingTargetRating').value = data.settings.rating.targetRating || 100000;
-                document.getElementById('kingRaceWin').value = data.settings.rating.race_win || 3000;
-                
-                // Populate stats grid
-                const stats = data.settings.stats;
-                let statsHtml = '';
-                for (const [key, value] of Object.entries(stats)) {
-                    statsHtml += `
-                        <div class="form-group">
-                            <label>${key}</label>
-                            <input type="number" id="stat_${key}" value="${value}" placeholder="${key}">
-                        </div>
-                    `;
+            try {
+                const res = await fetch(`${API_BASE}/api/king-settings`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('kingTargetRating').value = data.settings.rating.targetRating || 100000;
+                    document.getElementById('kingRaceWin').value = data.settings.rating.race_win || 3000;
+                    
+                    const stats = data.settings.stats;
+                    let statsHtml = '';
+                    for (const [key, value] of Object.entries(stats)) {
+                        statsHtml += `
+                            <div class="form-group">
+                                <label>${key.replace(/_/g, ' ').toUpperCase()}</label>
+                                <input type="number" id="stat_${key}" value="${value}" placeholder="${key}">
+                            </div>
+                        `;
+                    }
+                    document.getElementById('statsConfigGrid').innerHTML = statsHtml;
                 }
-                document.getElementById('statsConfigGrid').innerHTML = statsHtml;
-            }
+            } catch(e) { console.error(e); }
         }
         
         async function saveKingSettings() {
             const adminKey = prompt('Enter Admin Key:');
-            if (adminKey !== 'AldzKing2024') {
-                alert('Invalid admin key');
-                return;
-            }
+            if (!adminKey) return;
             
             const rating = {
                 targetRating: parseInt(document.getElementById('kingTargetRating').value),
@@ -433,13 +1086,20 @@
                 stats[key] = parseInt(input.value);
             });
             
+            showLoading(true);
             const res = await fetch(`${API_BASE}/api/king-settings/update`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ adminKey, rating, stats })
             });
             const data = await res.json();
-            document.getElementById('settingsResult').innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
+            showLoading(false);
+            
+            if (data.success) {
+                showAlert('settingsResult', `✅ ${data.message}`, 'success');
+            } else {
+                showAlert('settingsResult', `❌ ${data.error}`, 'error');
+            }
         }
         
         async function previewSettings() {
@@ -450,18 +1110,17 @@
                 stats[key] = parseInt(input.value);
             });
             
+            showLoading(true);
             const res = await fetch(`${API_BASE}/api/king-settings/preview`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ customStats: stats })
             });
             const data = await res.json();
+            showLoading(false);
+            
             if (data.success) {
-                document.getElementById('settingsResult').innerHTML = `
-                    <div class="alert alert-info">
-                        📊 Preview: Total ${data.preview.totalStats} stats | Estimated XP: ${data.preview.estimatedXP.toLocaleString()}
-                    </div>
-                `;
+                showAlert('settingsResult', `📊 Preview: ${data.preview.totalStats} stats | Estimated XP: ${data.preview.estimatedXP.toLocaleString()}`, 'info');
             }
         }
         
@@ -480,114 +1139,85 @@
                     const input = document.getElementById(`stat_${key}`);
                     if (input) input.value = value;
                 }
+                showAlert('settingsResult', 'Settings reset to default', 'info');
             }
         }
 
         // ============================================================
-        // KING RANK ACTIVATION
-        // ============================================================
-        async function activateKingRank() {
-            const email = document.getElementById('rankEmail').value;
-            const password = document.getElementById('rankPassword').value;
-            const nexusKey = document.getElementById('rankKey').value;
-            const useCustom = document.getElementById('useCustomStats').value === 'true';
-            
-            let customStats = null;
-            if (useCustom) {
-                customStats = {};
-                const statInputs = document.querySelectorAll('#statsConfigGrid input');
-                statInputs.forEach(input => {
-                    const key = input.id.replace('stat_', '');
-                    customStats[key] = parseInt(input.value);
-                });
-            }
-            
-            const res = await fetch(`${API_BASE}/api/apply-custom-stats`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, nexusKey, customStats })
-            });
-            const data = await res.json();
-            document.getElementById('rankResult').innerHTML = data.success 
-                ? `<div class="alert alert-success">✅ ${data.message}</div>`
-                : `<div class="alert alert-error">❌ ${data.error}</div>`;
-        }
-        
-        async function bulkProcess() {
-            const accounts = JSON.parse(document.getElementById('bulkAccounts').value);
-            const nexusKey = document.getElementById('bulkKey').value;
-            
-            const res = await fetch(`${API_BASE}/api/bulk-process`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ accounts, nexusKey })
-            });
-            const data = await res.json();
-            if (data.success) {
-                let html = '<div class="alert alert-success">✅ Bulk Process Completed</div>';
-                data.results.forEach(r => {
-                    html += `<div>${r.email}: ${r.success ? '✅ Success' : '❌ ' + r.error}</div>`;
-                });
-                document.getElementById('bulkResult').innerHTML = html;
-            }
-        }
-
-        // ============================================================
-        // ANALYTICS (Fitur 10)
+        // ANALYTICS
         // ============================================================
         async function loadAnalytics() {
-            const res = await fetch(`${API_BASE}/api/analytics`);
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById('analyticsData').innerHTML = `
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-number">${data.analytics.total.processed}</div><div class="stat-label">Total Processed</div></div>
-                        <div class="stat-card"><div class="stat-number">${data.analytics.total.successRate}%</div><div class="stat-label">Success Rate</div></div>
-                        <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.success}</div><div class="stat-label">Today Success</div></div>
-                        <div class="stat-card"><div class="stat-number">${data.analytics.queueStats.currentQueue}</div><div class="stat-label">Current Queue</div></div>
-                    </div>
-                `;
-                
-                // Chart
-                const ctx = document.getElementById('analyticsChart').getContext('2d');
-                if (analyticsChart) analyticsChart.destroy();
-                analyticsChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.analytics.daily.week.map(d => d.date),
-                        datasets: [
-                            { label: 'Success', data: data.analytics.daily.week.map(d => d.success), borderColor: '#00ff88', fill: false },
-                            { label: 'Failed', data: data.analytics.daily.week.map(d => d.failed), borderColor: '#ff3355', fill: false }
-                        ]
-                    },
-                    options: { responsive: true, plugins: { legend: { labels: { color: 'white' } } } }
-                });
-            }
+            try {
+                const res = await fetch(`${API_BASE}/api/analytics`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('analyticsData').innerHTML = `
+                        <div class="stats-grid">
+                            <div class="stat-card"><div class="stat-number">${data.analytics.total.processed}</div><div class="stat-label">Total Processed</div></div>
+                            <div class="stat-card"><div class="stat-number">${data.analytics.total.successRate}%</div><div class="stat-label">Success Rate</div></div>
+                            <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.success}</div><div class="stat-label">Today Success</div></div>
+                            <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.failed}</div><div class="stat-label">Today Failed</div></div>
+                        </div>
+                    `;
+                    
+                    const ctx = document.getElementById('analyticsChart').getContext('2d');
+                    if (analyticsChart) analyticsChart.destroy();
+                    analyticsChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.analytics.daily.week.map(d => d.date),
+                            datasets: [
+                                { label: 'Success', data: data.analytics.daily.week.map(d => d.success), borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,0.1)', fill: true, tension: 0.4 },
+                                { label: 'Failed', data: data.analytics.daily.week.map(d => d.failed), borderColor: '#ff3355', backgroundColor: 'rgba(255,51,85,0.1)', fill: true, tension: 0.4 }
+                            ]
+                        },
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: true,
+                            plugins: { 
+                                legend: { labels: { color: 'white' } },
+                                tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: { y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
+                        }
+                    });
+                }
+            } catch(e) { console.error(e); }
         }
 
         // ============================================================
         // UTILITIES
         // ============================================================
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+                setTimeout(() => {
+                    if (container.innerHTML.includes(message)) container.innerHTML = '';
+                }, 5000);
+            }
+        }
+
         function switchTab(tab) {
             const panels = document.querySelectorAll('.tab-panel');
             const btns = document.querySelectorAll('.tab-btn');
-            panels.forEach(p => p.style.display = 'none');
+            panels.forEach(p => p.classList.remove('active'));
             btns.forEach(b => b.classList.remove('active'));
             
             const tabMap = { rank: 'tabRank', queue: 'tabQueue', marketplace: 'tabMarketplace', settings: 'tabSettings', analytics: 'tabAnalytics' };
-            document.getElementById(tabMap[tab]).style.display = 'block';
+            document.getElementById(tabMap[tab]).classList.add('active');
             event.target.classList.add('active');
             
             if (tab === 'queue') refreshQueueStatus();
             if (tab === 'marketplace') loadMarketplace();
             if (tab === 'analytics') loadAnalytics();
         }
-        
+
         document.getElementById('useCustomStats')?.addEventListener('change', function() {
             document.getElementById('customStatsSection').style.display = this.value === 'true' ? 'block' : 'none';
         });
 
-        // Auto refresh live stats setiap 5 detik
+        // Auto refresh
         setInterval(loadLiveStats, 5000);
         setInterval(refreshQueueStatus, 10000);
         
@@ -595,6 +1225,8 @@
         loadLiveStats();
         loadKingSettings();
         loadAnalytics();
+        loadMarketplace();
+        refreshQueueStatus();
     </script>
 </body>
 </html>
