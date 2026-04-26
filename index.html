@@ -6,7 +6,7 @@
     <title>CPM KING RANK TOOL | NEXUS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -51,6 +51,12 @@
         @keyframes gradientShift {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
+        }
+
+        @keyframes successShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .container {
@@ -233,9 +239,14 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: scale(1.02);
             box-shadow: 0 4px 15px rgba(160,32,240,0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .btn-success {
@@ -243,9 +254,14 @@
             color: white;
         }
 
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             transform: scale(1.02);
             box-shadow: 0 4px 15px rgba(0,204,102,0.4);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .btn-danger {
@@ -274,7 +290,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             backdrop-filter: blur(10px);
             z-index: 10000;
             display: none;
@@ -406,9 +422,15 @@
         .badge-active { background: rgba(0,255,136,0.2); color: #00ff88; }
         .badge-sold { background: rgba(255,102,0,0.2); color: #ffaa33; }
 
-        /* Success Card Animation */
+        /* Success Animation */
         .success-card {
             animation: successPulse 0.6s ease;
+        }
+
+        .success-icon {
+            font-size: 48px;
+            color: #00ff88;
+            animation: successShake 0.5s ease;
         }
 
         /* Responsive */
@@ -449,7 +471,7 @@
             <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Queue Length</div></div>
         </div>
 
-        <!-- Cooldown Display (akan muncul jika ada cooldown) -->
+        <!-- Cooldown Display -->
         <div id="cooldownDisplay" style="display: none;"></div>
 
         <!-- Tabs -->
@@ -506,7 +528,7 @@
                     <label><i class="fas fa-key"></i> Nexus Key</label>
                     <input type="text" id="bulkKey" placeholder="NX-XXXX-XXXX">
                 </div>
-                <button class="btn btn-success btn-block" onclick="bulkProcess()"><i class="fas fa-play"></i> Bulk Process</button>
+                <button class="btn btn-success btn-block" onclick="bulkProcess()" id="bulkBtn"><i class="fas fa-play"></i> Bulk Process</button>
                 <div id="bulkResult"></div>
             </div>
         </div>
@@ -637,10 +659,10 @@
 
     <script>
         // ============================================================
-        // CPM KING RANK TOOL - FULL VERSION
+        // CPM KING RANK TOOL - FULL VERSION (Tanpa Canvas Confetti)
         // ============================================================
         
-         const API_BASE = "https://abcdefghoeu7.vercel.app";
+        const API_BASE = "https://your-cpm-server.vercel.app"; // Ganti dengan URL server kamu
         let analyticsChart = null;
         let cooldownCheckInterval = null;
         let currentEmail = null;
@@ -664,26 +686,48 @@
         function updateLoadingStep(step) {
             const steps = {
                 'verify': () => {
-                    document.getElementById('step1')?.classList.add('active');
-                    document.getElementById('step1')?.classList.remove('completed');
-                    document.getElementById('loadingText').innerText = 'Verifying Nexus Key...';
+                    const step1 = document.getElementById('step1');
+                    if (step1) {
+                        step1.classList.add('active');
+                        step1.classList.remove('completed');
+                    }
+                    const loadingText = document.getElementById('loadingText');
+                    if (loadingText) loadingText.innerText = 'Verifying Nexus Key...';
                 },
                 'login': () => {
-                    document.getElementById('step1')?.classList.add('completed');
-                    document.getElementById('step1')?.classList.remove('active');
-                    document.getElementById('step2')?.classList.add('active');
-                    document.getElementById('loadingText').innerText = 'Logging into CPM...';
+                    const step1 = document.getElementById('step1');
+                    const step2 = document.getElementById('step2');
+                    if (step1) {
+                        step1.classList.add('completed');
+                        step1.classList.remove('active');
+                    }
+                    if (step2) {
+                        step2.classList.add('active');
+                    }
+                    const loadingText = document.getElementById('loadingText');
+                    if (loadingText) loadingText.innerText = 'Logging into CPM...';
                 },
                 'rank': () => {
-                    document.getElementById('step2')?.classList.add('completed');
-                    document.getElementById('step2')?.classList.remove('active');
-                    document.getElementById('step3')?.classList.add('active');
-                    document.getElementById('loadingText').innerText = 'Setting King Rank...';
+                    const step2 = document.getElementById('step2');
+                    const step3 = document.getElementById('step3');
+                    if (step2) {
+                        step2.classList.add('completed');
+                        step2.classList.remove('active');
+                    }
+                    if (step3) {
+                        step3.classList.add('active');
+                    }
+                    const loadingText = document.getElementById('loadingText');
+                    if (loadingText) loadingText.innerText = 'Setting King Rank...';
                 },
                 'success': () => {
-                    document.getElementById('step3')?.classList.add('completed');
-                    document.getElementById('step3')?.classList.remove('active');
-                    document.getElementById('loadingText').innerText = 'Success!';
+                    const step3 = document.getElementById('step3');
+                    if (step3) {
+                        step3.classList.add('completed');
+                        step3.classList.remove('active');
+                    }
+                    const loadingText = document.getElementById('loadingText');
+                    if (loadingText) loadingText.innerText = 'Success!';
                 }
             };
             
@@ -699,12 +743,15 @@
             });
         }
 
-        function triggerConfetti() {
-            canvasConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#a020f0', '#e0aaff', '#ffd700'] });
-            setTimeout(() => {
-                canvasConfetti({ particleCount: 100, spread: 100, origin: { y: 0.5, x: 0.3 }, colors: ['#a020f0'] });
-                canvasConfetti({ particleCount: 100, spread: 100, origin: { y: 0.5, x: 0.7 }, colors: ['#ffd700'] });
-            }, 200);
+        function showSuccessAnimation() {
+            const resultDiv = document.getElementById('rankResult');
+            if (resultDiv) {
+                const existingIcon = resultDiv.querySelector('.success-icon');
+                if (!existingIcon) {
+                    const successHtml = `<div class="success-icon" style="text-align: center; margin-bottom: 10px;">👑✨🎉</div>`;
+                    // Hanya tambahkan jika belum ada
+                }
+            }
         }
 
         // ============================================================
@@ -740,7 +787,6 @@
                     </div>
                 `;
                 
-                // Update timer setiap detik
                 if (cooldownCheckInterval) clearInterval(cooldownCheckInterval);
                 
                 let remaining = cooldown.remaining;
@@ -767,31 +813,33 @@
 
         function enableRankButtons(enable) {
             const btn = document.getElementById('activateBtn');
-            const bulkBtn = document.querySelector('#tabRank .btn-success');
+            const bulkBtn = document.getElementById('bulkBtn');
             if (btn) btn.disabled = !enable;
             if (bulkBtn) bulkBtn.disabled = !enable;
         }
 
         // ============================================================
-        // LIVE STATS (Fitur 6)
+        // LIVE STATS
         // ============================================================
         async function loadLiveStats() {
             try {
                 const res = await fetch(`${API_BASE}/api/live-stats`);
                 const data = await res.json();
                 if (data.success) {
-                    document.getElementById('liveStats').innerHTML = `
+                    const statsHtml = `
                         <div class="stat-card"><div class="stat-number">${data.stats.totalProcessed}</div><div class="stat-label">Total Processed</div></div>
                         <div class="stat-card"><div class="stat-number">${data.stats.successRate}%</div><div class="stat-label">Success Rate</div></div>
                         <div class="stat-card"><div class="stat-number">${data.stats.todaySuccess}</div><div class="stat-label">Today Success</div></div>
                         <div class="stat-card"><div class="stat-number">${data.stats.queueLength}</div><div class="stat-label">Queue Length</div></div>
                     `;
+                    const liveStats = document.getElementById('liveStats');
+                    if (liveStats) liveStats.innerHTML = statsHtml;
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error('Live stats error:', e); }
         }
 
         // ============================================================
-        // KING RANK ACTIVATION (DENGAN EFFECT & COOLDOWN)
+        // KING RANK ACTIVATION
         // ============================================================
         async function activateKingRank() {
             const email = document.getElementById('rankEmail').value.trim();
@@ -828,10 +876,10 @@
             
             try {
                 updateLoadingStep('verify');
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 800));
                 
                 updateLoadingStep('login');
-                await new Promise(r => setTimeout(r, 1500));
+                await new Promise(r => setTimeout(r, 1200));
                 
                 updateLoadingStep('rank');
                 
@@ -846,10 +894,16 @@
                     updateLoadingStep('success');
                     await new Promise(r => setTimeout(r, 500));
                     showLoading(false);
-                    triggerConfetti();
+                    showSuccessAnimation();
                     showAlert('rankResult', `👑 ${data.message}`, 'success');
                     
-                    // Update cooldown display
+                    // Tambah class success ke card
+                    const card = document.querySelector('#tabRank .glass-card');
+                    if (card) {
+                        card.classList.add('success-card');
+                        setTimeout(() => card.classList.remove('success-card'), 1000);
+                    }
+                    
                     await displayCooldown(email);
                     loadLiveStats();
                 } else if (data.cooldown) {
@@ -895,9 +949,10 @@
                             ${r.email}: ${r.success ? '✅ Success' : '❌ ' + r.error}
                         </div>`;
                     });
-                    document.getElementById('bulkResult').innerHTML = html;
+                    const bulkResult = document.getElementById('bulkResult');
+                    if (bulkResult) bulkResult.innerHTML = html;
                     loadLiveStats();
-                    if (data.hasCooldown) await displayCooldown(currentEmail);
+                    if (data.hasCooldown && currentEmail) await displayCooldown(currentEmail);
                 } else {
                     showAlert('bulkResult', data.error, 'error');
                 }
@@ -958,7 +1013,8 @@
                         html += `<div class="alert alert-info">No items in queue</div>`;
                     }
                     html += `</div>`;
-                    document.getElementById('queueStatus').innerHTML = html;
+                    const queueStatus = document.getElementById('queueStatus');
+                    if (queueStatus) queueStatus.innerHTML = html;
                 }
             } catch(e) { console.error(e); }
         }
@@ -1002,28 +1058,35 @@
             if (type) url += `type=${type}&`;
             if (maxPrice) url += `maxPrice=${maxPrice}`;
             
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data.success && data.listings && data.listings.length > 0) {
-                let html = '';
-                data.listings.forEach(item => {
-                    html += `
-                        <div class="marketplace-item">
-                            <div>
-                                <span class="badge badge-active">${item.item_type}</span>
-                                <strong>${typeof item.item_data === 'string' ? item.item_data : JSON.stringify(item.item_data)}</strong><br>
-                                <small>Seller: ${item.seller_id}</small>
-                            </div>
-                            <div>
-                                <span style="color: #a020f0; font-weight: bold;">💰 ${item.price} pts</span>
-                                <button class="btn btn-primary" style="margin-left: 12px; padding: 6px 12px;" onclick="buyItem('${item.listing_id}')">Buy</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                document.getElementById('marketplaceListings').innerHTML = html;
-            } else {
-                document.getElementById('marketplaceListings').innerHTML = '<div class="alert alert-info">No listings found</div>';
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                const marketplaceListings = document.getElementById('marketplaceListings');
+                if (marketplaceListings) {
+                    if (data.success && data.listings && data.listings.length > 0) {
+                        let html = '';
+                        data.listings.forEach(item => {
+                            html += `
+                                <div class="marketplace-item">
+                                    <div>
+                                        <span class="badge badge-active">${item.item_type}</span>
+                                        <strong>${typeof item.item_data === 'string' ? item.item_data : JSON.stringify(item.item_data)}</strong><br>
+                                        <small>Seller: ${item.seller_id}</small>
+                                    </div>
+                                    <div>
+                                        <span style="color: #a020f0; font-weight: bold;">💰 ${item.price} pts</span>
+                                        <button class="btn btn-primary" style="margin-left: 12px; padding: 6px 12px;" onclick="buyItem('${item.listing_id}')">Buy</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        marketplaceListings.innerHTML = html;
+                    } else {
+                        marketplaceListings.innerHTML = '<div class="alert alert-info">No listings found</div>';
+                    }
+                }
+            } catch(e) {
+                console.error(e);
             }
         }
         
@@ -1052,8 +1115,10 @@
                 const res = await fetch(`${API_BASE}/api/king-settings`);
                 const data = await res.json();
                 if (data.success) {
-                    document.getElementById('kingTargetRating').value = data.settings.rating.targetRating || 100000;
-                    document.getElementById('kingRaceWin').value = data.settings.rating.race_win || 3000;
+                    const targetRating = document.getElementById('kingTargetRating');
+                    const raceWin = document.getElementById('kingRaceWin');
+                    if (targetRating) targetRating.value = data.settings.rating.targetRating || 100000;
+                    if (raceWin) raceWin.value = data.settings.rating.race_win || 3000;
                     
                     const stats = data.settings.stats;
                     let statsHtml = '';
@@ -1065,7 +1130,8 @@
                             </div>
                         `;
                     }
-                    document.getElementById('statsConfigGrid').innerHTML = statsHtml;
+                    const statsConfigGrid = document.getElementById('statsConfigGrid');
+                    if (statsConfigGrid) statsConfigGrid.innerHTML = statsHtml;
                 }
             } catch(e) { console.error(e); }
         }
@@ -1075,8 +1141,8 @@
             if (!adminKey) return;
             
             const rating = {
-                targetRating: parseInt(document.getElementById('kingTargetRating').value),
-                race_win: parseInt(document.getElementById('kingRaceWin').value)
+                targetRating: parseInt(document.getElementById('kingTargetRating')?.value || 100000),
+                race_win: parseInt(document.getElementById('kingRaceWin')?.value || 3000)
             };
             
             const stats = {};
@@ -1126,8 +1192,11 @@
         
         function resetSettings() {
             if (confirm('Reset to default settings?')) {
-                document.getElementById('kingTargetRating').value = 100000;
-                document.getElementById('kingRaceWin').value = 3000;
+                const targetRating = document.getElementById('kingTargetRating');
+                const raceWin = document.getElementById('kingRaceWin');
+                if (targetRating) targetRating.value = 100000;
+                if (raceWin) raceWin.value = 3000;
+                
                 const defaultStats = {
                     cars: 100000, car_fix: 100000, drift_max: 100000, drift: 100000,
                     cargo: 100000, delivery: 100000, taxi: 100000, levels: 1000,
@@ -1150,39 +1219,49 @@
             try {
                 const res = await fetch(`${API_BASE}/api/analytics`);
                 const data = await res.json();
-                if (data.success) {
-                    document.getElementById('analyticsData').innerHTML = `
-                        <div class="stats-grid">
-                            <div class="stat-card"><div class="stat-number">${data.analytics.total.processed}</div><div class="stat-label">Total Processed</div></div>
-                            <div class="stat-card"><div class="stat-number">${data.analytics.total.successRate}%</div><div class="stat-label">Success Rate</div></div>
-                            <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.success}</div><div class="stat-label">Today Success</div></div>
-                            <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.failed}</div><div class="stat-label">Today Failed</div></div>
-                        </div>
-                    `;
+                if (data.success && data.analytics) {
+                    const analyticsDataDiv = document.getElementById('analyticsData');
+                    if (analyticsDataDiv) {
+                        analyticsDataDiv.innerHTML = `
+                            <div class="stats-grid">
+                                <div class="stat-card"><div class="stat-number">${data.analytics.total.processed}</div><div class="stat-label">Total Processed</div></div>
+                                <div class="stat-card"><div class="stat-number">${data.analytics.total.successRate}%</div><div class="stat-label">Success Rate</div></div>
+                                <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.success}</div><div class="stat-label">Today Success</div></div>
+                                <div class="stat-card"><div class="stat-number">${data.analytics.daily.today.failed}</div><div class="stat-label">Today Failed</div></div>
+                            </div>
+                        `;
+                    }
                     
-                    const ctx = document.getElementById('analyticsChart').getContext('2d');
-                    if (analyticsChart) analyticsChart.destroy();
-                    analyticsChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: data.analytics.daily.week.map(d => d.date),
-                            datasets: [
-                                { label: 'Success', data: data.analytics.daily.week.map(d => d.success), borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,0.1)', fill: true, tension: 0.4 },
-                                { label: 'Failed', data: data.analytics.daily.week.map(d => d.failed), borderColor: '#ff3355', backgroundColor: 'rgba(255,51,85,0.1)', fill: true, tension: 0.4 }
-                            ]
-                        },
-                        options: { 
-                            responsive: true, 
-                            maintainAspectRatio: true,
-                            plugins: { 
-                                legend: { labels: { color: 'white' } },
-                                tooltip: { mode: 'index', intersect: false }
+                    const ctx = document.getElementById('analyticsChart');
+                    if (ctx && data.analytics.daily.week) {
+                        const existingChart = analyticsChart;
+                        if (existingChart) existingChart.destroy();
+                        
+                        analyticsChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.analytics.daily.week.map(d => d.date),
+                                datasets: [
+                                    { label: 'Success', data: data.analytics.daily.week.map(d => d.success), borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,0.1)', fill: true, tension: 0.4 },
+                                    { label: 'Failed', data: data.analytics.daily.week.map(d => d.failed), borderColor: '#ff3355', backgroundColor: 'rgba(255,51,85,0.1)', fill: true, tension: 0.4 }
+                                ]
                             },
-                            scales: { y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
-                        }
-                    });
+                            options: { 
+                                responsive: true, 
+                                maintainAspectRatio: true,
+                                plugins: { 
+                                    legend: { labels: { color: 'white' } },
+                                    tooltip: { mode: 'index', intersect: false }
+                                },
+                                scales: { 
+                                    y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, 
+                                    x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } } 
+                                }
+                            }
+                        });
+                    }
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error('Analytics error:', e); }
         }
 
         // ============================================================
@@ -1205,17 +1284,31 @@
             btns.forEach(b => b.classList.remove('active'));
             
             const tabMap = { rank: 'tabRank', queue: 'tabQueue', marketplace: 'tabMarketplace', settings: 'tabSettings', analytics: 'tabAnalytics' };
-            document.getElementById(tabMap[tab]).classList.add('active');
-            event.target.classList.add('active');
+            const targetPanel = document.getElementById(tabMap[tab]);
+            if (targetPanel) targetPanel.classList.add('active');
+            
+            // Find the clicked button and add active class
+            btns.forEach(btn => {
+                if (btn.innerText.toLowerCase().includes(tab)) {
+                    btn.classList.add('active');
+                }
+            });
             
             if (tab === 'queue') refreshQueueStatus();
             if (tab === 'marketplace') loadMarketplace();
             if (tab === 'analytics') loadAnalytics();
         }
 
-        document.getElementById('useCustomStats')?.addEventListener('change', function() {
-            document.getElementById('customStatsSection').style.display = this.value === 'true' ? 'block' : 'none';
-        });
+        // Event listeners
+        const useCustomStats = document.getElementById('useCustomStats');
+        if (useCustomStats) {
+            useCustomStats.addEventListener('change', function() {
+                const customSection = document.getElementById('customStatsSection');
+                if (customSection) {
+                    customSection.style.display = this.value === 'true' ? 'block' : 'none';
+                }
+            });
+        }
 
         // Auto refresh
         setInterval(loadLiveStats, 5000);
